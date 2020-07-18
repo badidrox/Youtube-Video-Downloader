@@ -29,7 +29,7 @@ Note that you would need python + installing the pyinstaller module
 
 3- Unzip the ffmpeg-folder.zip and make sure that the ffmpeg-folder and the .exe file are in the SAME directory.
 
-4-Enjoy
+4-Create a shortcut to the .exe file in the desktop and Enjoy!
 
 Note that you do not need to download the ffmpeg-folder if you have ffmpeg already added to your PATH variable
 You can also download the latest version of ffmpeg from [ffmpeg](https://ffmpeg.org/).
