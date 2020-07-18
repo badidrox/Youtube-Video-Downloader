@@ -7,6 +7,13 @@ The version provided with this Application is lisenced under [GNU GPLv3](https:/
 ### OS Support:
 Currently only supports Windows with all features with plan to to add other platforms in the future
 
+### Core Features:
+-Ability to automatically download a separate audio file and merge it with a video file in case the choosen resolution (480p for example) does not have audio channel included.
+-Supports Playlist downloading 
+-Support download for both mp4 and webm file extensions.
+-Support resolutions from 144p to 2160p(4K).
+
+
 ## Instructions:
 ### How to Install:
 ##### Windows:
