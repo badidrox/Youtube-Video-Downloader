@@ -8,6 +8,7 @@ import sys
 import time
 
 #disk full error missing
+
 root = Tk()
 root.title('Youtube Video Downloader')
 root.geometry('560x720')
@@ -58,7 +59,7 @@ def pressAudioTab():
     audio_download_frame.pack(expand=True, fill='both')
 
 
-def remove_signs(string):  # this removes signs that doesnt work with file names and spaces to make it work always
+def remove_signs(string):  
     newstring = ''
     for char in string:
         if char in '\/<>*:?"|':
@@ -69,7 +70,6 @@ def remove_signs(string):  # this removes signs that doesnt work with file names
 
 
 def videoDownloadButtonThreaded(i):
-
     def videoDownloadButton(i):
         res_list = []
         for res,stream in app.video_streams_dict.items():
@@ -125,8 +125,6 @@ def videoDownloadButtonThreaded(i):
             enableAll()
         elif not app.desired_stream.is_progressive:
             infoPopup()
-
-
 
     thread = threading.Thread(target=partial(videoDownloadButton,i))
     thread.daemon = True
@@ -197,21 +195,14 @@ def downloadProgress(chunk, file_handle,remaining):
         app.time1 = time.time()
         app.old_remaining = remaining
 
-
     app.download_percent = round((1 - remaining / app.filesize) * 100, 3)
     progress['value'] = app.download_percent
     percent_label.configure(text="    "+str(app.download_percent).split(".")[0] + "%")
-
-
-
-
     app.n+=1
     if app.n==100:
         app.time2 = time.time()
         app.download_speed = round((app.old_remaining - remaining)/1000/(app.time2-app.time1),2)
         app.n=0
-
-
         if len(str(app.download_speed).split(".")[0])>3:
             unit = "MB/s"
             number = str(app.download_speed/1000).split(".")[0]
@@ -260,14 +251,9 @@ def downloadProgress3(chunk, file_handle,remaining):
         playlist.time1 = time.time()
         playlist.old_remaining = remaining
 
-
     playlist.download_percent = round((1 - remaining / playlist.filesize) * 100, 3)
     progress['value'] = playlist.download_percent
     percent_label.configure(text="    "+str(playlist.download_percent).split(".")[0] + "%")
-
-
-
-
     playlist.n+=1
     if playlist.n==100:
         playlist.time2 = time.time()
@@ -826,8 +812,6 @@ def settingsWindow():
             settings_window.destroy()
         else:
             errorWindow("The directory does not exist. Please make one")
-
-
     settings_window = Toplevel()
     settings_window.transient(root)
     settings_window.focus_set()
@@ -848,14 +832,10 @@ def settingsWindow():
     apply_button=Button(default_path_frame , text = 'Apply',bd = 0 , fg = text_color , highlightthickness=0,
                        bg = front_color,activebackground = '#414141' , activeforeground = text_color,font = 'TkFixedFont 14', command = applyButton)
     apply_button.grid(row = 0 , column = 1,sticky = 'nsew')
-
+#Creation
 
 main_frame = Frame(root , bg = back_color)
-
-
 title = Label(main_frame,text = 'Youtube Video Downloader' , bg = '#212121', height = 2 , fg = text_color, font = 'TkFixedFont 25')
-
-
 empty_frame = Frame(main_frame , bg =back_color , height = 10)
 empty_frame2 = Frame(main_frame , bg =back_color , height = 10)
 empty_frame3 = Frame(main_frame , bg ="#212121" , height = 10)
@@ -871,9 +851,6 @@ video_tab = Button(tab_frame , bg = '#212121' , text = 'Video' , bd = 0, fg = te
 
 audio_tab = Button(tab_frame , bg = front_color , text = 'Audio' , bd = 0 , fg = text_color,highlightthickness = 0,activebackground = '#414141' ,
                    activeforeground = text_color,command = pressAudioTab,font = 'TkFixedFont 14',disabledforeground = text_color)
-
-
-
 search_frame = Frame(main_frame , height = 50,bg =front_color)
 search_entry = Entry(search_frame ,fg = front_color,bg = text_color , highlightcolor = front_color,bd = 0)
 search_button = Button(search_frame , text = 'GO!',bd = 0 , fg = text_color , highlightthickness=0,
@@ -907,13 +884,7 @@ empty_label2 =  Label(empty_frame3, text='    '
                                      , bg='#212121', fg=text_color, font='TkFixedFont 14')
 
 
-
-
-#
-
-
-#placement
-# main_frame.pack(fill = 'both' , expand = True)
+#Placement
 main_frame.pack(fill = 'both' ,expand = True)
 title.pack(fill = 'x')
 empty_frame.pack(fill = 'x')
@@ -921,10 +892,7 @@ empty_frame.pack(fill = 'x')
 search_frame.pack(fill = 'x' )
 search_entry.grid(row = 0 , column = 0,sticky = 'nsew')
 search_button.grid(row = 0 , column = 1,sticky = 'nsew')
-
-#
 empty_frame2.pack(fill = 'x')
-
 tab_frame.pack(fill = 'x')
 video_tab.grid(row = 0 , column = 0, sticky = 'nsew')
 audio_tab.grid(row = 0 , column = 1,sticky = 'nsew')
