@@ -2,14 +2,16 @@ import pytube
 import os
 from bs4 import BeautifulSoup
 import requests
-cwd = os.getcwd()
-def remove_signs(string):  # this removes signs that doesnt work with file names and spaces to make it work always
+
+
+def remove_signs(string):  # this removes signs that file names doesnt support and replace them with spaces
     newstring = ''
     for char in string:
         if char in '\/<>*:?"|':
             char=' '
         newstring = newstring + char
     return newstring
+
 class YoutubeVideoDownloader:
     try:
         with open(os.path.expanduser('~') + '\Documents\YoutubeVideoDownloader\output_path.txt', 'r') as f:
@@ -43,11 +45,6 @@ class YoutubeVideoDownloader:
         self.audio_buttons_list = []
         self.video_buttons_list = []
         self.audio_labels_list = []
-
-
-
-
-
 
     def download(self,stream):
         filename = 'video'
@@ -166,7 +163,6 @@ class PlaylistDownloader():
 
     def downloadPlaylist(self,i):
         for link in self.urls:
-
             self.video = pytube.YouTube(link,on_progress_callback=self.downloadProgress3,on_complete_callback=self.downloadComplete3)
             video_streams_all = self.video.streams.filter(type='video')
             self.video_streams = video_streams_all.filter(file_extension='mp4',progressive=True).order_by('resolution').desc()
