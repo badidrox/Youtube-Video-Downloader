@@ -9,8 +9,11 @@ Currently only supports Windows with all features with plan to to add other plat
 
 ### Core Features:
 -Ability to automatically download a separate audio file and merge it with a video file in case the choosen resolution (480p for example) does not have audio channel included.
--Supports Playlist downloading 
+
+-Supports Playlist downloading .
+
 -Support download for both mp4 and webm file extensions.
+
 -Support resolutions from 144p to 2160p(4K).
 
 
