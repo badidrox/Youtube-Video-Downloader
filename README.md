@@ -37,7 +37,8 @@ Simply make sure that ffmpeg is added to PATH variable or the folder is renamed 
 
 
 ### How to Use:
-Paste a Youtube video link for normal video download
+Paste a Youtube video link for normal video download.
+
 Note that there is a lot of video streams(different resolutions and channels) that Youtube uses and a lot of them do not have audio channel included in them.
 This app can automatically download a separate audio file and merge both the video without audio and the audio file together to give you the desired resolution.
 
