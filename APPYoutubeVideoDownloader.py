@@ -2,23 +2,17 @@ import pytube
 import os
 from bs4 import BeautifulSoup
 import requests
+import traceback
+import sys
 
-
-def remove_signs(string):  # this removes signs that file names doesnt support and replace them with spaces
+def remove_signs(string):  # this removes signs that doesnt work with file names and spaces to make it work always
     newstring = ''
     for char in string:
         if char in '\/<>*:?"|':
             char=' '
         newstring = newstring + char
     return newstring
-
 class YoutubeVideoDownloader:
-    try:
-        with open(os.path.expanduser('~') + '\Documents\YoutubeVideoDownloader\output_path.txt', 'r') as f:
-            path = f.read().strip()
-            default_output_path = path
-    except:
-        pass
 
     def __init__(self,YtbUrl,downloadProgress,downloadComplete,downloadProgress2,downloadComplete2):
         self.video = pytube.YouTube(YtbUrl, on_progress_callback=downloadProgress,
@@ -29,7 +23,17 @@ class YoutubeVideoDownloader:
         self.time1 = None
         self.time2 = None
         self.old_remaining = 0
-        self.output_path= self.default_output_path
+        try:
+            if sys.platform =='linux':
+                with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'r') as f:
+                    path = f.read().strip()
+                    self.output_path = path
+            else:
+                with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'r') as f:
+                    path = f.read().strip()
+                    self.output_path = path
+        except:
+            pass
         self.downloaded_path=''
         self.video_streams_dict=dict()
         self.audio_streams_dict=dict()
@@ -45,6 +49,7 @@ class YoutubeVideoDownloader:
         self.audio_buttons_list = []
         self.video_buttons_list = []
         self.audio_labels_list = []
+
 
     def download(self,stream):
         filename = 'video'
@@ -113,14 +118,14 @@ class YoutubeVideoDownloader:
 
 
     def mergeVideoAudio(self,video_without_audio:str,audio:str):   #the absolute path for the video without audio and the audio
-        self.merge_output = self.output_path + '\output.mp4'
+        self.merge_output = self.output_path + 'output.mp4'
 
         try:
             os.system(f'ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
-            print('1st')
+
         except Exception as e:
+            traceback.print_exc()
             print(e)
-            print('2nd')
             os.system(f'ffmpeg-folder\\bin\\ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
         os.remove(video_without_audio)
         os.remove(audio)
@@ -147,9 +152,14 @@ class PlaylistDownloader():
         self.playlist_title = self.playlist.title()
 
         try:
-            with open(os.path.expanduser('~') + '\Documents\YoutubeVideoDownloader\output_path.txt', 'r') as f:
-                path = f.read().strip()
-                self.output_path = path
+            if sys.platform =='linux':
+                with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'r') as f:
+                    path = f.read().strip()
+                    self.output_path = path
+            else:
+                with open(os.path.expanduser('~') + '\\YoutubeVideoDownloader\\output_path.txt', 'r') as f:
+                    path = f.read().strip()
+                    self.output_path = path
         except:
             pass
         self.n = 0
@@ -163,6 +173,7 @@ class PlaylistDownloader():
 
     def downloadPlaylist(self,i):
         for link in self.urls:
+
             self.video = pytube.YouTube(link,on_progress_callback=self.downloadProgress3,on_complete_callback=self.downloadComplete3)
             video_streams_all = self.video.streams.filter(type='video')
             self.video_streams = video_streams_all.filter(file_extension='mp4',progressive=True).order_by('resolution').desc()
@@ -188,9 +199,13 @@ class PlaylistDownloader():
 
             self.filesize = stream.filesize
             prefix = str(self.k+1).zfill(self.digits)+'-'
-            if not os.path.exists(self.output_path+'\\'+remove_signs(self.playlist_title)+'/'):
-                os.mkdir(self.output_path+'\\'+remove_signs(self.playlist_title))
-            output_path = self.output_path+'\\'+remove_signs(self.playlist_title)
+            if sys.platform == 'linux':
+                playlist_folder = self.output_path+remove_signs(self.playlist_title)+'/'
+            else:
+                playlist_folder = self.output_path+remove_signs(self.playlist_title)+'\\'
+            if not os.path.exists(playlist_folder):
+                os.mkdir(playlist_folder)
+            output_path = self.output_path+remove_signs(self.playlist_title)
             stream.download(output_path=output_path,filename_prefix=prefix,skip_existing=True)
 
 

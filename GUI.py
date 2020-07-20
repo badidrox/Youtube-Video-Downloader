@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import filedialog
 from tkinter.ttk import Progressbar
 from APPYoutubeVideoDownloader import *
 from functools import partial
@@ -6,12 +7,16 @@ import threading
 import subprocess
 import sys
 import time
+import traceback
+
 
 #disk full error missing
-
 root = Tk()
 root.title('Youtube Video Downloader')
-root.geometry('560x720')
+if sys.platform == 'linux':
+    root.geometry('660x820')
+else:
+    root.geometry('560x720')
 root.resizable(False,True)
 back_color = '#515151'
 front_color = '#313131'
@@ -23,16 +28,26 @@ file_extension = StringVar()
 file_extension.set('mp4')
 
 link = StringVar()
-if not os.path.exists(os.path.expanduser('~')+'\Documents\YoutubeVideoDownloader'):
-    os.mkdir(os.path.expanduser('~')+'\Documents\YoutubeVideoDownloader')
-    if not os.path.exists(os.path.expanduser('~')+'\Documents\YoutubeVideoDownloader\output_path.txt'):
-        with open(os.path.expanduser('~')+'\Documents\YoutubeVideoDownloader\output_path.txt','w') as f:
-            f.write(os.path.expanduser('~')+'\Downloads')
-else:
-    if not os.path.exists(os.path.expanduser('~') + '\Documents\YoutubeVideoDownloader\output_path.txt'):
-        with open(os.path.expanduser('~') + '\Documents\YoutubeVideoDownloader\output_path.txt', 'w') as f:
-            f.write(os.path.expanduser('~') + '\Downloads')
-
+if sys.platform == 'win32':
+    if not os.path.exists(os.path.expanduser('~')+'\\Documents\\YoutubeVideoDownloader'):
+        os.mkdir(os.path.expanduser('~')+'\\Documents\\YoutubeVideoDownloader')
+        if not os.path.exists(os.path.expanduser('~')+'\\Documents\\YoutubeVideoDownloader\\output_path.txt'):
+            with open(os.path.expanduser('~')+'\\Documents\\YoutubeVideoDownloader\\output_path.txt','w') as f:
+                f.write(os.path.expanduser('~')+'\\Downloads\\')
+    else:
+        if not os.path.exists(os.path.expanduser('~') + '\\Documents\\YoutubeVideoDownloader\\output_path.txt'):
+            with open(os.path.expanduser('~') + '\\Documents\\YoutubeVideoDownloader\\output_path.txt', 'w') as f:
+                f.write(os.path.expanduser('~') + '\\Downloads\\')
+elif sys.platform == 'linux':
+    if not os.path.exists(os.path.expanduser('~')+'/YoutubeVideoDownloader'):
+        os.mkdir(os.path.expanduser('~')+'/YoutubeVideoDownloader')
+        if not os.path.exists(os.path.expanduser('~')+'/YoutubeVideoDownloader/output_path.txt'):
+            with open(os.path.expanduser('~')+'/YoutubeVideoDownloader/output_path.txt','w') as f:
+                f.write(os.path.expanduser('~')+'/Downloads/')
+    else:
+        if not os.path.exists(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt'):
+            with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'w') as f:
+                f.write(os.path.expanduser('~') + '/Downloads/')
 
 
 def pressVideoTab():
@@ -59,7 +74,7 @@ def pressAudioTab():
     audio_download_frame.pack(expand=True, fill='both')
 
 
-def remove_signs(string):  
+def remove_signs(string):  # this removes signs that doesnt work with file names and spaces to make it work always
     newstring = ''
     for char in string:
         if char in '\/<>*:?"|':
@@ -70,6 +85,7 @@ def remove_signs(string):
 
 
 def videoDownloadButtonThreaded(i):
+
     def videoDownloadButton(i):
         res_list = []
         for res,stream in app.video_streams_dict.items():
@@ -114,17 +130,20 @@ def videoDownloadButtonThreaded(i):
                     errorWindow('Network Error:\nCheck Your Internet Connection\n')
                 else:
                     print(e)
+                    traceback.print_exc()
                 return
             try:
-                os.rename(app.downloaded_path, app.output_path +'/'+ remove_signs(app.video_title) +'.'+file_extension.get())
+                os.rename(app.downloaded_path, app.output_path + remove_signs(app.video_title) +'.'+file_extension.get())
             except:
-                os.remove(app.output_path +'/'+ remove_signs(app.video_title) +'.'+file_extension.get())
-                os.rename(app.downloaded_path, app.output_path +'/'+ remove_signs(app.video_title) +'.'+file_extension.get())
+                os.remove(app.output_path + remove_signs(app.video_title) +'.'+file_extension.get())
+                os.rename(app.downloaded_path, app.output_path + remove_signs(app.video_title) +'.'+file_extension.get())
             progress_window.destroy()
             finishedWindow('Download Finished', ' Your Download is Complete',file_extension.get())
             enableAll()
         elif not app.desired_stream.is_progressive:
             infoPopup()
+
+
 
     thread = threading.Thread(target=partial(videoDownloadButton,i))
     thread.daemon = True
@@ -175,12 +194,13 @@ def audioDownloadButtonThreaded(j):
                 errorWindow('Network Error:\nCheck Your Internet Connection\n')
             else:
                 print(e)
+                traceback.print_exc()
             return
         try:
-            os.rename(app.downloaded_path,app.output_path + '/' + remove_signs(app.video_title) + '.' + file_extension.get())
+            os.rename(app.downloaded_path,app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
         except:
-            os.remove(app.output_path + '/' + remove_signs(app.video_title) + '.' + file_extension.get())
-            os.rename(app.downloaded_path,app.output_path + '/' + remove_signs(app.video_title) + '.' + file_extension.get())
+            os.remove(app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
+            os.rename(app.downloaded_path,app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
         progress_window.destroy()
         enableAll()
         finishedWindow('Download Finished', ' Your Download is Complete',file_extension.get())
@@ -195,14 +215,21 @@ def downloadProgress(chunk, file_handle,remaining):
         app.time1 = time.time()
         app.old_remaining = remaining
 
+
     app.download_percent = round((1 - remaining / app.filesize) * 100, 3)
     progress['value'] = app.download_percent
     percent_label.configure(text="    "+str(app.download_percent).split(".")[0] + "%")
+
+
+
+
     app.n+=1
     if app.n==100:
         app.time2 = time.time()
         app.download_speed = round((app.old_remaining - remaining)/1000/(app.time2-app.time1),2)
         app.n=0
+
+
         if len(str(app.download_speed).split(".")[0])>3:
             unit = "MB/s"
             number = str(app.download_speed/1000).split(".")[0]
@@ -251,9 +278,14 @@ def downloadProgress3(chunk, file_handle,remaining):
         playlist.time1 = time.time()
         playlist.old_remaining = remaining
 
+
     playlist.download_percent = round((1 - remaining / playlist.filesize) * 100, 3)
     progress['value'] = playlist.download_percent
     percent_label.configure(text="    "+str(playlist.download_percent).split(".")[0] + "%")
+
+
+
+
     playlist.n+=1
     if playlist.n==100:
         playlist.time2 = time.time()
@@ -401,12 +433,15 @@ def getLink():  #THE FUNCTION THAT START IT ALL
             displayAudioStreams()
             deleteLoadingWindow()
         except Exception as e:
+            deleteLoadingWindow()
             if e.__str__() == 'regex_search: could not find match for (?:v=|\/)([0-9A-Za-z_-]{11}).*':
                 errorWindow("Invalid Youtube Link\n")
             elif e.__str__() == '<urlopen error [Errno 11001] getaddrinfo failed>':
                 errorWindow('Network Error:\nCheck Your Internet Connection\n')
             else:
+                traceback.print_exc()
                 print(e)
+            return
     else:
         try:
             global playlist
@@ -459,6 +494,7 @@ def getLink():  #THE FUNCTION THAT START IT ALL
 
                             else:
                                 print(e)
+                                traceback.print_exc()
                             return
                     thread = threading.Thread(target=downloadPlaylist)
                     thread.daemon = True
@@ -514,6 +550,7 @@ def getLink():  #THE FUNCTION THAT START IT ALL
             elif e.__str__() == "<urlopen error [Errno 11001] getaddrinfo failed>":
                 errorWindow('Network Error:\nCheck Your Internet Connection\n')
             else:
+                traceback.print_exc()
                 print(e)
             return
 
@@ -597,10 +634,10 @@ def finishedWindow(title, text,format):
     def openFile():
         finished_window.destroy()
         if sys.platform == "win32":
-            os.startfile(app.output_path +'/'+ remove_signs(app.video_title)+'.'+format)
+            os.startfile(app.output_path + remove_signs(app.video_title)+'.'+format)
         else:
             opener = "open" if sys.platform == "darwin" else "xdg-open"
-            subprocess.call([opener, app.output_path +'/'+ remove_signs(app.video_title)+'.'+format])
+            subprocess.call([opener, app.output_path + remove_signs(app.video_title)+'.'+format])
     label = Label(finished_window, text=text
                   , bg='#212121', fg=text_color, font='TkFixedFont 16')
     finished_button_frame = Frame(finished_window, bg='#212121')
@@ -676,7 +713,8 @@ def infoPopup():
                     errorWindow('Network Error:\nCheck Your Internet Connection\n')
                 else:
                     print(e)
-                    
+                    traceback.print_exc()
+
                 return
             try:
                 app.downloadAudioDirectly()
@@ -686,6 +724,7 @@ def infoPopup():
                     errorWindow('Network Error:\nCheck Your Internet Connection\n')
                 else:
                     print(e)
+                    traceback.print_exc()
                 return
             try:
                 app.mergeVideoAudio(app.output_path+'/video.'+file_extension.get() , app.output_path+'/audio.mp4')
@@ -696,10 +735,10 @@ def infoPopup():
                 return
 
             try:
-                os.rename(app.merge_output, app.output_path +'/'+ remove_signs(app.video_title) + '.mp4')
+                os.rename(app.merge_output, app.output_path + remove_signs(app.video_title) + '.mp4')
             except:
-                os.remove(app.output_path +'/'+ remove_signs(app.video_title) + '.mp4')
-                os.rename(app.merge_output, app.output_path + '/' + remove_signs(app.video_title) + '.mp4')
+                os.remove(app.output_path + remove_signs(app.video_title) + '.mp4')
+                os.rename(app.merge_output, app.output_path  + remove_signs(app.video_title) + '.mp4')
 
             deleteProgressWindow()
             finishedWindow('Download and Merging Finished' , 'Your Download and Merging is complete','mp4')
@@ -747,11 +786,12 @@ def infoPopup():
                     errorWindow('Network Error:\nCheck Your Internet Connection\n')
                 else:
                     print(e)
+                    traceback.print_exc()
             try:
-                os.rename(app.downloaded_path,app.output_path + '/' + remove_signs(app.video_title) + '.' + file_extension.get())
+                os.rename(app.downloaded_path,app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
             except:
-                os.remove(app.output_path + '/' + remove_signs(app.video_title) + '.' + file_extension.get())
-                os.rename(app.downloaded_path,app.output_path + '/' + remove_signs(app.video_title) + '.' + file_extension.get())
+                os.remove(app.output_path  + remove_signs(app.video_title) + '.' + file_extension.get())
+                os.rename(app.downloaded_path,app.output_path  + remove_signs(app.video_title) + '.' + file_extension.get())
             progress_window.destroy()
             finishedWindow('Download Finished' ,' Your Download is Complete',file_extension.get())
             enableAll()
@@ -800,18 +840,35 @@ def errorWindow(error_message):
                      font = 'TkFixedFont 14', command = error_window.destroy)
     ok_button.pack()
 def settingsWindow():
-    def applyButton():
-        path = default_path_entry.get()
-        if  os.path.exists(path):
-            with open(os.path.expanduser('~') + '\Documents\YoutubeVideoDownloader\output_path.txt', 'w') as f:
-                f.write(path)
+    # def applyButton():
+    #     path = default_path_entry.get()
+    #     if  os.path.exists(path):
+
+    #         settings_window.destroy()
+    #     else:
+    #         errorWindow("The directory does not exist. Please make one")
+    def browseButton():
+        path = filedialog.askdirectory(parent = root , initialdir = os.path.expanduser('~'))
+        print(repr(path))
+        if not path =='' and not path == ():
+            if sys.platform =='linux':
+                if not path == '/':
+                    path = path + '/'
+                with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'w') as f:
+                    f.write(path)
+            else:
+                if not path == '\\':
+                    path = path + '\\'
+                with open(os.path.expanduser('~') + '\\Documents\\YoutubeVideoDownloader\\output_path.txt', 'w') as f:
+                    f.write(path)
             try:
                 app.output_path=path
             except:
                 pass
-            settings_window.destroy()
-        else:
-            errorWindow("The directory does not exist. Please make one")
+            default_path_entry['state'] = NORMAL
+            default_path_entry.delete(0,len(default_path_entry.get()))
+            default_path_entry.insert(0,path)
+            default_path_entry['state'] = DISABLED
     settings_window = Toplevel()
     settings_window.transient(root)
     settings_window.focus_set()
@@ -821,21 +878,35 @@ def settingsWindow():
                                      , bg='#212121', fg=text_color, font='TkFixedFont 14')
     default_path_label.pack()
     default_path_frame = Frame(settings_window,bg="#212121",height = 50)
-    default_path_entry = Entry(default_path_frame ,fg = front_color,bg = text_color , highlightcolor = front_color,bd = 0)
-    with open(os.path.expanduser('~') + '\Documents\YoutubeVideoDownloader\output_path.txt', 'r') as f:
-        path = f.read().strip()
+    default_path_entry = Entry(default_path_frame ,fg = front_color,bg = text_color , highlightcolor = front_color,bd = 0,disabledforeground = front_color)
+
+    if sys.platform =='linux':
+        with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'r') as f:
+            path = f.read().strip()
+    else:
+        with open(os.path.expanduser('~') + '\\Documents\\YoutubeVideoDownloader\\output_path.txt', 'r') as f:
+            path = f.read().strip()
     default_path_entry.insert(0,path)
+    default_path_entry['state'] = DISABLED
     default_path_frame.grid_columnconfigure(0, weight=8)
     default_path_frame.grid_columnconfigure(1, weight=1)
     default_path_frame.pack(fill ='x')
     default_path_entry.grid(row=0,column=0,sticky = 'nsew')
-    apply_button=Button(default_path_frame , text = 'Apply',bd = 0 , fg = text_color , highlightthickness=0,
-                       bg = front_color,activebackground = '#414141' , activeforeground = text_color,font = 'TkFixedFont 14', command = applyButton)
-    apply_button.grid(row = 0 , column = 1,sticky = 'nsew')
-#Creation
+    # apply_button=Button(default_path_frame , text = 'Apply',bd = 0 , fg = text_color , highlightthickness=0,
+    #                    bg = front_color,activebackground = '#414141' , activeforeground = text_color,font = 'TkFixedFont 14', command = applyButton)
+    # apply_button.grid(row = 0 , column = 1,sticky = 'nsew')
+    browse_button=Button(default_path_frame , text = 'Browse',bd = 0 , fg = text_color , highlightthickness=0,
+                       bg = front_color,activebackground = '#414141' , activeforeground = text_color,font = 'TkFixedFont 14', command = browseButton)
+    browse_button.grid(row = 0 , column = 1,sticky = 'nsew')
+
+
 
 main_frame = Frame(root , bg = back_color)
+
+
 title = Label(main_frame,text = 'Youtube Video Downloader' , bg = '#212121', height = 2 , fg = text_color, font = 'TkFixedFont 25')
+
+
 empty_frame = Frame(main_frame , bg =back_color , height = 10)
 empty_frame2 = Frame(main_frame , bg =back_color , height = 10)
 empty_frame3 = Frame(main_frame , bg ="#212121" , height = 10)
@@ -844,13 +915,16 @@ empty_frame5 = Frame(main_frame , bg ="#212121" , height = 5)
 
 tab_frame = Frame(main_frame,bg = '#414141' , height = 50 )
 tab_frame.grid_columnconfigure(0 , weight = 1)
-tab_frame.grid_columnconfigure(1 , weight = 1)  
+tab_frame.grid_columnconfigure(1 , weight = 1)
 
 video_tab = Button(tab_frame , bg = '#212121' , text = 'Video' , bd = 0, fg = text_color , highlightthickness = 0,activebackground = '#414141' ,
                    activeforeground = text_color,command = pressVideoTab,font = 'TkFixedFont 14',disabledforeground = text_color, state = 'disabled')
 
 audio_tab = Button(tab_frame , bg = front_color , text = 'Audio' , bd = 0 , fg = text_color,highlightthickness = 0,activebackground = '#414141' ,
                    activeforeground = text_color,command = pressAudioTab,font = 'TkFixedFont 14',disabledforeground = text_color)
+
+
+
 search_frame = Frame(main_frame , height = 50,bg =front_color)
 search_entry = Entry(search_frame ,fg = front_color,bg = text_color , highlightcolor = front_color,bd = 0)
 search_button = Button(search_frame , text = 'GO!',bd = 0 , fg = text_color , highlightthickness=0,
@@ -884,7 +958,13 @@ empty_label2 =  Label(empty_frame3, text='    '
                                      , bg='#212121', fg=text_color, font='TkFixedFont 14')
 
 
-#Placement
+
+
+#
+
+
+#placement
+# main_frame.pack(fill = 'both' , expand = True)
 main_frame.pack(fill = 'both' ,expand = True)
 title.pack(fill = 'x')
 empty_frame.pack(fill = 'x')
@@ -892,7 +972,10 @@ empty_frame.pack(fill = 'x')
 search_frame.pack(fill = 'x' )
 search_entry.grid(row = 0 , column = 0,sticky = 'nsew')
 search_button.grid(row = 0 , column = 1,sticky = 'nsew')
+
+#
 empty_frame2.pack(fill = 'x')
+
 tab_frame.pack(fill = 'x')
 video_tab.grid(row = 0 , column = 0, sticky = 'nsew')
 audio_tab.grid(row = 0 , column = 1,sticky = 'nsew')
