@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import requests
 import traceback
 import sys
+from pathlib import Path
 
 def remove_signs(string):  # this removes signs that doesnt work with file names and spaces to make it work always
     newstring = ''
@@ -12,6 +13,13 @@ def remove_signs(string):  # this removes signs that doesnt work with file names
             char=' '
         newstring = newstring + char
     return newstring
+
+if sys.platform =='win32':
+    youtube_cfg_folder = Path(os.path.expanduser('~')+'/Documents/YoutubeVideoDownloader/')
+else:
+    youtube_cfg_folder = Path(os.path.expanduser('~') + '/YoutubeVideoDownloader/')
+output_cfg_file = youtube_cfg_folder / 'output_path.txt'
+
 class YoutubeVideoDownloader:
 
     def __init__(self,YtbUrl,downloadProgress,downloadComplete,downloadProgress2,downloadComplete2):
@@ -24,16 +32,17 @@ class YoutubeVideoDownloader:
         self.time2 = None
         self.old_remaining = 0
         try:
-            if sys.platform =='linux':
-                with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'r') as f:
-                    path = f.read().strip()
-                    self.output_path = path
-            else:
-                with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'r') as f:
-                    path = f.read().strip()
-                    self.output_path = path
+
+            with open(output_cfg_file, 'r') as f:
+                path = f.read().strip()
+                if sys.platform == 'win32' :
+                    self.output_path = path +'\\'
+                else:
+                    self.output_path = path + '/' #TEST THIS FOR LINUX
+
         except:
-            pass
+            traceback.print_exc()
+
         self.downloaded_path=''
         self.video_streams_dict=dict()
         self.audio_streams_dict=dict()
@@ -54,7 +63,7 @@ class YoutubeVideoDownloader:
     def download(self,stream):
         filename = 'video'
         self.downloaded_path=stream.download(output_path=self.output_path, filename=filename)
-
+        print(self.downloaded_path)
     def resetVideoStreamsDict(self):
         self.video_streams_dict = dict()
     def resetAudioStreamsDict(self):
@@ -119,14 +128,11 @@ class YoutubeVideoDownloader:
 
     def mergeVideoAudio(self,video_without_audio:str,audio:str):   #the absolute path for the video without audio and the audio
         self.merge_output = self.output_path + 'output.mp4'
-
-        try:
-            os.system(f'ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
-
-        except Exception as e:
-            traceback.print_exc()
-            print(e)
-            os.system(f'ffmpeg-folder\\bin\\ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
+        print(self.merge_output)
+        # try:
+        #     os.system(f'ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
+        # except:
+        os.system(f'ffmpeg-folder\\bin\\ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
         os.remove(video_without_audio)
         os.remove(audio)
 
@@ -152,16 +158,16 @@ class PlaylistDownloader():
         self.playlist_title = self.playlist.title()
 
         try:
-            if sys.platform =='linux':
-                with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'r') as f:
-                    path = f.read().strip()
-                    self.output_path = path
-            else:
-                with open(os.path.expanduser('~') + '\\YoutubeVideoDownloader\\output_path.txt', 'r') as f:
-                    path = f.read().strip()
-                    self.output_path = path
+
+            with open(output_cfg_file, 'r') as f:
+                path = f.read().strip()
+                if sys.platform == 'win32':
+                    self.output_path = path + '\\'
+                else:
+                    self.output_path = path + '/'  # TEST THIS FOR LINUX
+
         except:
-            pass
+            traceback.print_exc()
         self.n = 0
         self.time1 = None
         self.time2 = None
@@ -199,10 +205,11 @@ class PlaylistDownloader():
 
             self.filesize = stream.filesize
             prefix = str(self.k+1).zfill(self.digits)+'-'
-            if sys.platform == 'linux':
-                playlist_folder = self.output_path+remove_signs(self.playlist_title)+'/'
-            else:
+
+            if sys.platform == 'win32':
                 playlist_folder = self.output_path+remove_signs(self.playlist_title)+'\\'
+            else:
+                playlist_folder = self.output_path+remove_signs(self.playlist_title)+'/'
             if not os.path.exists(playlist_folder):
                 os.mkdir(playlist_folder)
             output_path = self.output_path+remove_signs(self.playlist_title)

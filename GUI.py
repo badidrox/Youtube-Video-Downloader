@@ -8,7 +8,7 @@ import subprocess
 import sys
 import time
 import traceback
-
+from pathlib import Path
 
 #disk full error missing
 root = Tk()
@@ -28,26 +28,24 @@ file_extension = StringVar()
 file_extension.set('mp4')
 
 link = StringVar()
-if sys.platform == 'win32':
-    if not os.path.exists(os.path.expanduser('~')+'\\Documents\\YoutubeVideoDownloader'):
-        os.mkdir(os.path.expanduser('~')+'\\Documents\\YoutubeVideoDownloader')
-        if not os.path.exists(os.path.expanduser('~')+'\\Documents\\YoutubeVideoDownloader\\output_path.txt'):
-            with open(os.path.expanduser('~')+'\\Documents\\YoutubeVideoDownloader\\output_path.txt','w') as f:
-                f.write(os.path.expanduser('~')+'\\Downloads\\')
-    else:
-        if not os.path.exists(os.path.expanduser('~') + '\\Documents\\YoutubeVideoDownloader\\output_path.txt'):
-            with open(os.path.expanduser('~') + '\\Documents\\YoutubeVideoDownloader\\output_path.txt', 'w') as f:
-                f.write(os.path.expanduser('~') + '\\Downloads\\')
-elif sys.platform == 'linux':
-    if not os.path.exists(os.path.expanduser('~')+'/YoutubeVideoDownloader'):
-        os.mkdir(os.path.expanduser('~')+'/YoutubeVideoDownloader')
-        if not os.path.exists(os.path.expanduser('~')+'/YoutubeVideoDownloader/output_path.txt'):
-            with open(os.path.expanduser('~')+'/YoutubeVideoDownloader/output_path.txt','w') as f:
-                f.write(os.path.expanduser('~')+'/Downloads/')
-    else:
-        if not os.path.exists(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt'):
-            with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'w') as f:
-                f.write(os.path.expanduser('~') + '/Downloads/')
+if sys.platform =='win32':
+    youtube_cfg_folder = Path(os.path.expanduser('~')+'/Documents/YoutubeVideoDownloader/')
+else:
+    youtube_cfg_folder = Path(os.path.expanduser('~') + '/YoutubeVideoDownloader/')
+output_cfg_file = youtube_cfg_folder / 'output_path.txt'
+downloads_folder = Path(os.path.expanduser('~') + '/Downloads/')
+
+if not os.path.exists(youtube_cfg_folder):
+    os.mkdir(youtube_cfg_folder)
+    if not os.path.exists(output_cfg_file):
+        with open(output_cfg_file,'w') as f:
+            f.write(str(downloads_folder))
+else:
+    if not os.path.exists(output_cfg_file):
+        with open(output_cfg_file, 'w') as f:
+            f.write(str(downloads_folder))
+
+
 
 
 def pressVideoTab():
@@ -638,6 +636,7 @@ def finishedWindow(title, text,format):
         else:
             opener = "open" if sys.platform == "darwin" else "xdg-open"
             subprocess.call([opener, app.output_path + remove_signs(app.video_title)+'.'+format])
+            #TEST THIS FOR LINUX
     label = Label(finished_window, text=text
                   , bg='#212121', fg=text_color, font='TkFixedFont 16')
     finished_button_frame = Frame(finished_window, bg='#212121')
@@ -736,7 +735,8 @@ def infoPopup():
 
             try:
                 os.rename(app.merge_output, app.output_path + remove_signs(app.video_title) + '.mp4')
-            except:
+            except Exception as e:
+                print(e)
                 os.remove(app.output_path + remove_signs(app.video_title) + '.mp4')
                 os.rename(app.merge_output, app.output_path  + remove_signs(app.video_title) + '.mp4')
 
@@ -849,25 +849,24 @@ def settingsWindow():
     #         errorWindow("The directory does not exist. Please make one")
     def browseButton():
         path = filedialog.askdirectory(parent = root , initialdir = os.path.expanduser('~'))
-        print(repr(path))
+        print(path)
+
         if not path =='' and not path == ():
+            path = Path(path)
             if sys.platform =='linux':
-                if not path == '/':
-                    path = path + '/'
-                with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'w') as f:
-                    f.write(path)
+                with open(output_cfg_file, 'w') as f:
+                    f.write(str(path))
             else:
-                if not path == '\\':
-                    path = path + '\\'
-                with open(os.path.expanduser('~') + '\\Documents\\YoutubeVideoDownloader\\output_path.txt', 'w') as f:
-                    f.write(path)
+
+                with open(output_cfg_file, 'w') as f:
+                    f.write(str(path))
             try:
-                app.output_path=path
+                app.output_path=str(path)
             except:
                 pass
             default_path_entry['state'] = NORMAL
             default_path_entry.delete(0,len(default_path_entry.get()))
-            default_path_entry.insert(0,path)
+            default_path_entry.insert(0,str(path))
             default_path_entry['state'] = DISABLED
     settings_window = Toplevel()
     settings_window.transient(root)
@@ -880,12 +879,9 @@ def settingsWindow():
     default_path_frame = Frame(settings_window,bg="#212121",height = 50)
     default_path_entry = Entry(default_path_frame ,fg = front_color,bg = text_color , highlightcolor = front_color,bd = 0,disabledforeground = front_color)
 
-    if sys.platform =='linux':
-        with open(os.path.expanduser('~') + '/YoutubeVideoDownloader/output_path.txt', 'r') as f:
-            path = f.read().strip()
-    else:
-        with open(os.path.expanduser('~') + '\\Documents\\YoutubeVideoDownloader\\output_path.txt', 'r') as f:
-            path = f.read().strip()
+    with open(output_cfg_file, 'r') as f:
+        path = f.read().strip()
+
     default_path_entry.insert(0,path)
     default_path_entry['state'] = DISABLED
     default_path_frame.grid_columnconfigure(0, weight=8)
