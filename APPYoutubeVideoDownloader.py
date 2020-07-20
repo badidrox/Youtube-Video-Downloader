@@ -132,7 +132,15 @@ class YoutubeVideoDownloader:
         # try:
         #     os.system(f'ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
         # except:
-        os.system(f'ffmpeg-folder\\bin\\ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
+        if sys.platform == 'win32':
+            if os.path.exists('ffmpeg-folder\\bin\\ffmpeg.exe'):
+                os.system(f'ffmpeg-folder\\bin\\ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
+            elif os.path.exists('bin\\ffmpeg.exe'):
+                os.system(f'bin\\ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
+            else:
+                os.system(f'ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
+        else:
+            os.system(f'ffmpeg -i {video_without_audio} -i {audio} -codec copy {self.merge_output}')
         os.remove(video_without_audio)
         os.remove(audio)
 

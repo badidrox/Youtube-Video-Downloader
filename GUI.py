@@ -729,14 +729,16 @@ def infoPopup():
                 app.mergeVideoAudio(app.output_path+'/video.'+file_extension.get() , app.output_path+'/audio.mp4')
                 merging_label.configure(text='Done')
             except:
-                errorWindow("FFMPEG was not found on your pc.\nPlease make sure :\nFFMPEG is in the same directory as the program.\n")
+                if sys.platform == 'win32':
+                    errorWindow("FFMPEG was not found on your pc.\nPlease make sure :\nffmpeg is in the same directory as the program.\nffmpeg is added to the PATH variable\n")
+                else:
+                    errorWindow("FFMPEG was not found on your pc.\nPlease make sure :\nFFMPEG is installed on your pc.\n")
                 deleteProgressWindow()
                 return
 
             try:
                 os.rename(app.merge_output, app.output_path + remove_signs(app.video_title) + '.mp4')
             except Exception as e:
-                print(e)
                 os.remove(app.output_path + remove_signs(app.video_title) + '.mp4')
                 os.rename(app.merge_output, app.output_path  + remove_signs(app.video_title) + '.mp4')
 
