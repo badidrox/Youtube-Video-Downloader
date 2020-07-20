@@ -5,7 +5,7 @@ This Application uses [ffmpeg](https://ffmpeg.org/).
 The version provided with this Application is lisenced under [GNU GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ### OS Support:
-Currently only supports Windows with all features with plan to to add other platforms in the future
+Currently only supports Windows with all features with plans to add other platforms in the future
 
 ### Core Features:
 -Ability to automatically download a separate audio file and merge it with a video file in case the choosen resolution (480p for example) does not have audio channel included.
