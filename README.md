@@ -39,7 +39,7 @@ Simply make sure that ffmpeg is added to PATH variable or the folder is renamed 
 
 `sudo apt install ffmpeg`
 
-2- Download the Youtube Video Downlodader for linux from [Releases](https://github.com/badidrox/Youtube-Video-Downloader/releases)
+2- Download the Youtube Video Downloader for linux from [Releases](https://github.com/badidrox/Youtube-Video-Downloader/releases)
 
 
 ### How to Use:
