@@ -38,7 +38,7 @@ class YoutubeVideoDownloader:
                 if sys.platform == 'win32' :
                     self.output_path = path +'\\'
                 else:
-                    self.output_path = path + '/' #TEST THIS FOR LINUX
+                    self.output_path = path + '/'
 
         except:
             traceback.print_exc()
@@ -144,6 +144,19 @@ class YoutubeVideoDownloader:
         os.remove(video_without_audio)
         os.remove(audio)
 
+    def cvtAudioMP3(self,audio):
+        self.mp3_output = self.output_path + "audio.mp3"
+        if sys.platform == 'win32':
+            if os.path.exists('ffmpeg-folder\\bin\\ffmpeg.exe'):
+                os.system(f'ffmpeg-folder\\bin\\ffmpeg -i {audio} -q:a 0 -map a {self.mp3_output}')
+            elif os.path.exists('bin\\ffmpeg.exe'):
+                os.system(f'bin\\ffmpeg -i {audio} -q:a 0 -map a {self.mp3_output}')
+            else:
+                os.system(f'ffmpeg -i {audio} -q:a 0 -map a {self.mp3_output}')
+        else:
+            os.system(f'ffmpeg -i {audio} -q:a 0 -map a {self.mp3_output}')
+
+        os.remove(audio)
     def videoTitleFinder(self,url):
         source = requests.get(url).text
         soup = BeautifulSoup(source, 'lxml')
@@ -215,15 +228,33 @@ class PlaylistDownloader():
             prefix = str(self.k+1).zfill(self.digits)+'-'
 
             if sys.platform == 'win32':
-                playlist_folder = self.output_path+remove_signs(self.playlist_title)+'\\'
+                self.playlist_folder = self.output_path+remove_signs(self.playlist_title)+'\\'
             else:
-                playlist_folder = self.output_path+remove_signs(self.playlist_title)+'/'
-            if not os.path.exists(playlist_folder):
-                os.mkdir(playlist_folder)
+                self.playlist_folder = self.output_path+remove_signs(self.playlist_title)+'/'
+            if not os.path.exists(self.playlist_folder):
+                os.mkdir(self.playlist_folder)
             output_path = self.output_path+remove_signs(self.playlist_title)
+
             stream.download(output_path=output_path,filename_prefix=prefix,skip_existing=True)
 
 
+    def cvtPlaylistMP3(self):
+        for audio in os.listdir(self.playlist_folder):
+
+            audio_mp4 = self.playlist_folder + audio
+
+            mp3_output = self.playlist_folder + os.path.splitext(audio)[0]+'.mp3'
+            if not os.path.exists(mp3_output):
+                if sys.platform == 'win32':
+                    if os.path.exists('ffmpeg-folder\\bin\\ffmpeg.exe'):
+                        os.system(f'ffmpeg-folder\\bin\\ffmpeg -i "{audio_mp4}"  -q:a 0 -map a "{mp3_output}"')
+                    elif os.path.exists('bin\\ffmpeg.exe'):
+                        os.system(f'bin\\ffmpeg -i "{audio_mp4}"  -q:a 0 -map a "{mp3_output}"')
+                    else:
+                        os.system(f'ffmpeg -i "{audio_mp4}"  -q:a 0 -map a "{mp3_output}"')
+                else:
+                    os.system(f'ffmpeg -i "{audio_mp4}" -q:a 0 -map a "{mp3_output}"')
+                os.remove(audio_mp4)
     @staticmethod
     def videoTitleFinder(url):
         source = requests.get(url).text

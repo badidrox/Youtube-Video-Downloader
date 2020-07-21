@@ -1,3 +1,4 @@
+import faulthandler ; faulthandler.enable()
 from tkinter import *
 from tkinter import filedialog
 from tkinter.ttk import Progressbar
@@ -12,6 +13,7 @@ from pathlib import Path
 
 #disk full error missing
 root = Tk()
+
 root.title('Youtube Video Downloader')
 if sys.platform == 'linux':
     root.geometry('660x820')
@@ -26,8 +28,9 @@ index_res = StringVar()
 index_res.set('0')
 file_extension = StringVar()
 file_extension.set('mp4')
-
 link = StringVar()
+cvt_mp3 = IntVar()
+
 if sys.platform =='win32':
     youtube_cfg_folder = Path(os.path.expanduser('~')+'/Documents/YoutubeVideoDownloader/')
 else:
@@ -35,17 +38,32 @@ else:
 output_cfg_file = youtube_cfg_folder / 'output_path.txt'
 downloads_folder = Path(os.path.expanduser('~') + '/Downloads/')
 
+
+cvt_cfg_file = youtube_cfg_folder / 'cvt_mp3.txt'
+
 if not os.path.exists(youtube_cfg_folder):
     os.mkdir(youtube_cfg_folder)
     if not os.path.exists(output_cfg_file):
         with open(output_cfg_file,'w') as f:
             f.write(str(downloads_folder))
+    if not os.path.exists(cvt_cfg_file):
+        with open(cvt_cfg_file,'w') as f:
+            f.write('1')
 else:
     if not os.path.exists(output_cfg_file):
         with open(output_cfg_file, 'w') as f:
             f.write(str(downloads_folder))
+    if not os.path.exists(cvt_cfg_file):
+        with open(cvt_cfg_file,'w') as f:
+            f.write('1')
 
+with open(cvt_cfg_file,'r') as f:
+    try:
+        cvt_mp3.set(int(f.read().strip()))
+    except:
+        cvt_mp3.set(1)
 
+print(cvt_mp3.get())
 
 
 def pressVideoTab():
@@ -153,6 +171,7 @@ def audioDownloadButtonThreaded(j):
         def deleteProgressWindow():
             enableAll()
             progress_window.destroy()
+            return
         global progress_window
         progress_window = Toplevel()
         progress_window.focus_set()
@@ -160,7 +179,7 @@ def audioDownloadButtonThreaded(j):
         progress_window.protocol("WM_DELETE_WINDOW", deleteProgressWindow)
         disableAll()
         progress_window.title("Audio Download Progress Bar")
-        progress_window.geometry('400x75')
+        progress_window.geometry('400x100')
         progress_window.resizable(False, False)
         progress_window.configure(bg='#212121')
         progress_label2 = Label(progress_window, text='Audio Progress:'
@@ -194,14 +213,28 @@ def audioDownloadButtonThreaded(j):
                 print(e)
                 traceback.print_exc()
             return
-        try:
-            os.rename(app.downloaded_path,app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
-        except:
-            os.remove(app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
-            os.rename(app.downloaded_path,app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
+        converting_label =  Label(progress_window, text='Converting to mp3...'
+                            , bg='#212121', fg=text_color, font='TkFixedFont 14')
+        if cvt_mp3.get() == 0:
+            try:
+                os.rename(app.downloaded_path,app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
+            except:
+                os.remove(app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
+                os.rename(app.downloaded_path,app.output_path + remove_signs(app.video_title) + '.' + file_extension.get())
+                finishedWindow('Download Finished', ' Your Download is Complete',file_extension.get())
+        else:
+            converting_label.pack()
+            app.cvtAudioMP3(app.downloaded_path)
+            converting_label.configure(text = "Done")
+            try:
+                os.rename(app.mp3_output,app.output_path + remove_signs(app.video_title) + '.mp3')
+            except:
+                os.remove(app.output_path + remove_signs(app.video_title) + '.mp3')
+                os.rename(app.mp3_output,app.output_path + remove_signs(app.video_title) + '.mp3')
+                finishedWindow('Download Finished', ' Your Download is Complete','mp3')
         progress_window.destroy()
         enableAll()
-        finishedWindow('Download Finished', ' Your Download is Complete',file_extension.get())
+
     thread = threading.Thread(target=partial(audioDownloadButton,j))
     thread.daemon = True
     thread.start()
@@ -321,12 +354,12 @@ def downloadComplete3(stream,file_path):
             def openDownloadFolder():
                 finished_window.destroy()
                 if sys.platform == "win32":
-                    os.startfile(playlist.output_path + '\\'+remove_signs(playlist.playlist_title))
+                    os.startfile(playlist.output_path + remove_signs(playlist.playlist_title))
                 else:
                     opener = "open" if sys.platform == "darwin" else "xdg-open"
-                    subprocess.call([opener, playlist.output_path + '\\'+remove_signs(self.playlist_title)])
+                    subprocess.call([opener, playlist.output_path + remove_signs(playlist.playlist_title)])
 
-            label = Label(finished_window, text=text
+            label = Label(finished_window, text=text+'\n'
                           , bg='#212121', fg=text_color, font='TkFixedFont 16')
             finished_button_frame = Frame(finished_window, bg='#212121')
 
@@ -340,11 +373,14 @@ def downloadComplete3(stream,file_path):
                                                  fg=text_color,
                                                  borderwidth=0, highlightthickness=0, font='TkFixedFont 16',
                                                  command=openDownloadFolder)
+            empty_label4 = Label(finished_button_frame, text=" "
+                          , bg='#212121', fg=text_color, font='TkFixedFont 14')
 
             label.pack()
             finished_button_frame.pack()
             finished_button_done.grid(row=1, column=0, sticky='we')
-            finished_button_open_folder.grid(row=1, column=1, sticky='we')
+            empty_label4.grid(row=1,column=1,sticky='we')
+            finished_button_open_folder.grid(row=1, column=2, sticky='we')
 
         finishedWindow2('Playlist Download Finished' , 'Your playlist download has completed')
 def displayVideoStreams():
@@ -434,7 +470,7 @@ def getLink():  #THE FUNCTION THAT START IT ALL
             deleteLoadingWindow()
             if e.__str__() == 'regex_search: could not find match for (?:v=|\/)([0-9A-Za-z_-]{11}).*':
                 errorWindow("Invalid Youtube Link\n")
-            elif e.__str__() == '<urlopen error [Errno 11001] getaddrinfo failed>':
+            elif e.__str__() == '<urlopen error [Errno -3] Temporary failure in name resolution>' or e.__str__() == '<urlopen error [Errno 11001] getaddrinfo failed>':
                 errorWindow('Network Error:\nCheck Your Internet Connection\n')
             else:
                 traceback.print_exc()
@@ -444,6 +480,7 @@ def getLink():  #THE FUNCTION THAT START IT ALL
         try:
             global playlist
             playlist = PlaylistDownloader(link.get(),downloadProgress3,downloadComplete3)
+            print(playlist.video_count)
             if not playlist.video_count == 0:
                 global playlist_window
                 playlist_window = Toplevel()
@@ -483,17 +520,36 @@ def getLink():  #THE FUNCTION THAT START IT ALL
                     def downloadPlaylist():
                         start_button['state'] = DISABLED
                         try:
-
                             playlist.downloadPlaylist(i.get())
                         except Exception as e:
                             if e.__str__() == "<urlopen error [Errno 11001] getaddrinfo failed>":
                                 errorWindow('Network Error:\nCheck Your Internet Connection\n')
                                 deletePlaylistWindow()
-
                             else:
                                 print(e)
                                 traceback.print_exc()
                             return
+                        if cvt_mp3.get() == 1:
+
+                            converting_window = Toplevel()
+                            converting_window.title('Converting')
+                            converting_window.configure(bg='#212121')
+                            converting_window.resizable(False, False)
+                            converting_window.geometry('500x50')
+                            converting_window.focus_set()
+                            converting_window.transient(root)
+
+                            def deleteConvertingWindow():
+
+                                converting_window.destroy()
+
+
+                            converting_window.protocol("WM_DELETE_WINDOW", deleteConvertingWindow)
+                            converting_label = Label(converting_window, text='Coverting to MP3.\nSee the console.'
+                            , bg='#212121', fg=text_color, font='TkFixedFont 14')
+                            converting_label.pack()
+                            playlist.cvtPlaylistMP3()
+                            converting_window.destroy()
                     thread = threading.Thread(target=downloadPlaylist)
                     thread.daemon = True
                     thread.start()
@@ -636,8 +692,7 @@ def finishedWindow(title, text,format):
         else:
             opener = "open" if sys.platform == "darwin" else "xdg-open"
             subprocess.call([opener, app.output_path + remove_signs(app.video_title)+'.'+format])
-            #TEST THIS FOR LINUX
-    label = Label(finished_window, text=text
+    label = Label(finished_window, text=text + '\n'
                   , bg='#212121', fg=text_color, font='TkFixedFont 16')
     finished_button_frame = Frame(finished_window, bg='#212121')
 
@@ -650,11 +705,19 @@ def finishedWindow(title, text,format):
     finished_button_open_file = Button(finished_button_frame, text='Open File', bg=front_color,activebackground = '#616161' , activeforeground = text_color, fg=text_color,
                                          borderwidth=0, highlightthickness=0, font='TkFixedFont 16',
                                          command=openFile)
+
+    empty_label2 = Label(finished_button_frame, text=" "
+                  , bg='#212121', fg=text_color, font='TkFixedFont 14')
+    empty_label3 = Label(finished_button_frame, text=" "
+              , bg='#212121', fg=text_color, font='TkFixedFont 14')
+
     label.pack()
     finished_button_frame.pack()
-    finished_button_done.grid(row=1, column=0, sticky='we',ipady=10)
-    finished_button_open_folder.grid(row=1, column=1, sticky='we',ipady=10)
-    finished_button_open_file.grid(row=1,column=2,sticky='we',ipady=10)
+    finished_button_done.grid(row=1, column=0, sticky='we')
+    empty_label2.grid(row=1, column=1, sticky='we')
+    finished_button_open_folder.grid(row=1, column=2, sticky='we')
+    empty_label3.grid(row=1, column=3, sticky='we')
+    finished_button_open_file.grid(row=1,column=4,sticky='we')
 
 
 
@@ -896,9 +959,13 @@ def settingsWindow():
     browse_button=Button(default_path_frame , text = 'Browse',bd = 0 , fg = text_color , highlightthickness=0,
                        bg = front_color,activebackground = '#414141' , activeforeground = text_color,font = 'TkFixedFont 14', command = browseButton)
     browse_button.grid(row = 0 , column = 1,sticky = 'nsew')
-
-
-
+    convert_label = Label(default_path_frame,text = 'Always Convert Audio to MP3' , bg = '#212121', height = 2 , fg = text_color, font = 'TkFixedFont 12')
+    def checkButton():
+        with open(cvt_cfg_file,'w') as f:
+            f.write(str(cvt_mp3.get()))
+    convert_checkbutton = Checkbutton(default_path_frame,variable = cvt_mp3,command=checkButton,bg = '#212121',highlightcolor = '#212121',highlightthickness = 0 , activebackground = '#212121')
+    convert_label.grid(row=1,column=0)
+    convert_checkbutton.grid(row=1,column=1)
 main_frame = Frame(root , bg = back_color)
 
 
@@ -917,7 +984,6 @@ tab_frame.grid_columnconfigure(1 , weight = 1)
 
 video_tab = Button(tab_frame , bg = '#212121' , text = 'Video' , bd = 0, fg = text_color , highlightthickness = 0,activebackground = '#414141' ,
                    activeforeground = text_color,command = pressVideoTab,font = 'TkFixedFont 14',disabledforeground = text_color, state = 'disabled')
-
 audio_tab = Button(tab_frame , bg = front_color , text = 'Audio' , bd = 0 , fg = text_color,highlightthickness = 0,activebackground = '#414141' ,
                    activeforeground = text_color,command = pressAudioTab,font = 'TkFixedFont 14',disabledforeground = text_color)
 
@@ -933,6 +999,7 @@ search_frame.grid_columnconfigure(0 , weight = 8)
 search_frame.grid_columnconfigure(1 , weight = 1)
 video_download_frame = Frame(main_frame,bg = '#212121')
 audio_download_frame = Frame(main_frame,bg = '#212121')
+
 r1 = Radiobutton(empty_frame3 , text = 'mp4' , variable = file_extension , value = 'mp4' ,bg = '#212121' , fg = text_color,
                  activeforeground=text_color, activebackground=front_color,highlightthickness=0,
                  selectcolor='#212121',font='TkFixedFont 14',command = redisplayStreamsThreaded)
@@ -988,4 +1055,4 @@ empty_label2.grid(row=0,column=5,sticky = 'nsew')
 refresh_button.grid(row=0,column =6  ,sticky = "nse" )
 settings_button.grid(row=0,column = 4,stick = 'nsew')
 video_download_frame.pack(fill ='both' , expand = True)
-mainloop()
+root.mainloop()
