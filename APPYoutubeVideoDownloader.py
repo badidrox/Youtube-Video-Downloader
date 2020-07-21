@@ -238,7 +238,8 @@ class PlaylistDownloader():
             stream.download(output_path=output_path,filename_prefix=prefix,skip_existing=True)
 
 
-    def cvtPlaylistMP3(self):
+    def cvtPlaylistMP3(self,updateLabel):
+        p = 1
         for audio in os.listdir(self.playlist_folder):
 
             audio_mp4 = self.playlist_folder + audio
@@ -255,6 +256,8 @@ class PlaylistDownloader():
                 else:
                     os.system(f'ffmpeg -i "{audio_mp4}" -q:a 0 -map a "{mp3_output}"')
                 os.remove(audio_mp4)
+                p += 1
+                updateLabel(p)
     @staticmethod
     def videoTitleFinder(url):
         source = requests.get(url).text

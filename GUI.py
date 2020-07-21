@@ -530,7 +530,8 @@ def getLink():  #THE FUNCTION THAT START IT ALL
                                 traceback.print_exc()
                             return
                         if cvt_mp3.get() == 1:
-
+                            global p
+                            p = 1
                             converting_window = Toplevel()
                             converting_window.title('Converting')
                             converting_window.configure(bg='#212121')
@@ -543,12 +544,13 @@ def getLink():  #THE FUNCTION THAT START IT ALL
 
                                 converting_window.destroy()
 
-
+                            def updateLabel(p):
+                                converting_label.configure(text=f'Coverting to MP3. {p}/{playlist.video_count}\nPlease be Patient.')
                             converting_window.protocol("WM_DELETE_WINDOW", deleteConvertingWindow)
-                            converting_label = Label(converting_window, text='Coverting to MP3.\nSee the console.'
+                            converting_label = Label(converting_window, text=f'Coverting to MP3. {p}/{playlist.video_count}\nPlease be Patient.'
                             , bg='#212121', fg=text_color, font='TkFixedFont 14')
                             converting_label.pack()
-                            playlist.cvtPlaylistMP3()
+                            playlist.cvtPlaylistMP3(updateLabel)
                             converting_window.destroy()
                     thread = threading.Thread(target=downloadPlaylist)
                     thread.daemon = True
