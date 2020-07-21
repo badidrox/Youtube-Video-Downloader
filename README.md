@@ -22,7 +22,7 @@ Currently supports both Windows and Linux
 ##### Windows:
 1- Download the zip file for ffmpeg from [Releases](https://github.com/badidrox/Youtube-Video-Downloader/releases)
 
-2- Download the .exe File of Youtube Video Downloader 
+2- Download the .exe File of Youtube Video Downloader from [Releases](https://github.com/badidrox/Youtube-Video-Downloader/releases)
 
 3- Unzip the ffmpeg-folder.zip and make sure that the ffmpeg-folder and the .exe file are in the SAME directory.
 
