@@ -30,7 +30,7 @@ Currently supports both Windows and Linux
 
 Note that you do not need to download the ffmpeg-folder if you have ffmpeg already added to your PATH variable
 You can also download the latest version of ffmpeg from [ffmpeg](https://ffmpeg.org/).
-Simply make sure that ffmpeg is added to PATH variable or the folder is renamed to folder-ffmpeg + in the same directory as the .exe file
+Simply make sure that ffmpeg is added to PATH variable or the folder is renamed to ffmpeg-folder + in the same directory as the .exe file
 
 ##### Ubuntu:
 1- Install ffmpeg by running the following commands: 
