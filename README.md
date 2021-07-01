@@ -1,3 +1,4 @@
+prolly youtube changed smth and it no longer works lmao
 # Youtube-Video-Downloader
 A Python Application to download Youtube videos and playlists made mainly with pytube3 and tkinter
 
